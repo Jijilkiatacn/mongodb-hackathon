@@ -2,30 +2,28 @@
 Diagnosis Agent — takes a flagged anomaly from the Monitoring Agent,
 builds a natural-language description of it, runs $vectorSearch against
 `failure_signatures` (Atlas auto-embedding, voyage-4), checks the top
-match's score against a confidence threshold, and asks Azure OpenAI to
+match's score against a confidence threshold, and asks AWS Bedrock to
 phrase the final recommendation. Logs the full decision to `agent_decisions`.
 
-Env vars required: MONGO_URI, MONGO_DB, AZURE_API_KEY
+Env vars required: MONGO_URI, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 Optional env vars:
-  AZURE_OPENAI_ENDPOINT     (default: https://hack-apim-cin.azure-api.net/openai)
-  AZURE_OPENAI_API_VERSION  (default: 2025-01-01-preview)
-  AZURE_OPENAI_DEPLOYMENT   (default: gpt-4.1-mini)
+  MONGO_DB              (default: team_8)
+  AWS_DEFAULT_REGION    (default: us-east-1)
+  BEDROCK_MODEL_ID      (default: amazon.nova-lite-v1:0)
 """
 
 import ssl_patch  # noqa: F401 — must precede pymongo import
 import os
 from datetime import datetime, timezone
 
-import requests
+import boto3
 from pymongo import MongoClient
 from pymongo.errors import OperationFailure
 
 MONGO_URI = os.environ["MONGO_URI"]
 DB_NAME = os.environ.get("MONGO_DB", "team_8")
-AZURE_API_KEY = os.environ["AZURE_API_KEY"]
-AZURE_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT", "https://hack-apim-cin.azure-api.net/openai")
-AZURE_API_VERSION = os.environ.get("AZURE_OPENAI_API_VERSION", "2025-01-01-preview")
-AZURE_DEPLOYMENT = os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-4.1-mini")
+AWS_REGION = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
+BEDROCK_MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "amazon.nova-lite-v1:0")
 
 VECTOR_INDEX_NAME = os.environ.get("VECTOR_INDEX_NAME", "autoembed_index")
 CONFIDENCE_THRESHOLD = float(os.environ.get("CONFIDENCE_THRESHOLD", "0.45"))
@@ -97,7 +95,7 @@ def vector_search_failure_match(failure_signatures, query_text: str, limit: int 
 
 
 def generate_recommendation(anomaly: dict, match: dict) -> str:
-    """Calls Azure OpenAI to phrase a clear, actionable recommendation for a technician,
+    """Calls AWS Bedrock to phrase a clear, actionable recommendation for a technician,
     grounded in the matched failure signature and the actual sensor readings."""
     prompt = (
         f"You are a predictive maintenance assistant. A sensor anomaly was detected "
@@ -113,27 +111,13 @@ def generate_recommendation(anomaly: dict, match: dict) -> str:
         f"explaining what's happening and what to do next. Be direct and practical."
     )
 
-    url = f"{AZURE_ENDPOINT.rstrip('/')}/chat/completions"
-    response = requests.post(
-        url,
-        headers={
-            "api-key": AZURE_API_KEY,
-            "content-type": "application/json",
-        },
-        json={
-            "model": AZURE_DEPLOYMENT,
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 300,
-        },
-        timeout=30,
+    bedrock = boto3.client("bedrock-runtime", region_name=AWS_REGION)
+    response = bedrock.converse(
+        modelId=BEDROCK_MODEL_ID,
+        messages=[{"role": "user", "content": [{"text": prompt}]}],
+        inferenceConfig={"maxTokens": 300},
     )
-    if not response.ok:
-        raise RuntimeError(
-            f"Azure OpenAI {response.status_code} — URL: {url}\n"
-            f"Body: {response.text}"
-        )
-    data = response.json()
-    return data["choices"][0]["message"]["content"]
+    return response["output"]["message"]["content"][0]["text"]
 
 
 # Per-machine timestamp of the last successful vector-search call, used to
