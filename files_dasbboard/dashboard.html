@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Plant-A Monitoring — Predictive Maintenance</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0a0e0f;
+    --panel: #12181a;
+    --panel-border: #1f2a2d;
+    --text-primary: #d8e0e0;
+    --text-dim: #5f7274;
+    --accent-amber: #ffb454;
+    --accent-green: #4ade80;
+    --accent-red: #ff5b5b;
+    --accent-red-glow: rgba(255, 91, 91, 0.15);
+    --grid-line: #18211f;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    padding: 28px;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--panel-border);
+    padding-bottom: 16px;
+  }
+
+  .title-block h1 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .title-block .sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .clock {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    text-align: right;
+  }
+
+  .clock .live-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .machines {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .machine-card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    padding: 18px;
+    position: relative;
+    transition: border-color 0.4s, box-shadow 0.4s;
+  }
+
+  .machine-card.alert {
+    border-color: var(--accent-red);
+    box-shadow: 0 0 24px var(--accent-red-glow);
+  }
+
+  .machine-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .machine-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+
+  .status-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+
+  .status-pill.healthy {
+    background: rgba(74, 222, 128, 0.12);
+    color: var(--accent-green);
+  }
+
+  .status-pill.alert {
+    background: rgba(255, 91, 91, 0.15);
+    color: var(--accent-red);
+    animation: blink 1.2s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .readings {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .reading {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .reading .label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 2px;
+  }
+
+  .reading .value {
+    font-size: 22px;
+    font-weight: 500;
+  }
+
+  .reading .value.alert-value {
+    color: var(--accent-red);
+  }
+
+  .reading .unit {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  .sparkline {
+    width: 100%;
+    height: 48px;
+    margin-top: 8px;
+  }
+
+  .diagnosis-box {
+    margin-top: 14px;
+    padding: 12px;
+    background: rgba(255, 91, 91, 0.06);
+    border: 1px solid rgba(255, 91, 91, 0.25);
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .diagnosis-box .match-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-red);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .diagnosis-box .recommendation {
+    color: var(--text-primary);
+  }
+
+  .feed-panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    padding: 18px;
+  }
+
+  .feed-panel h2 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+
+  .feed-item {
+    display: grid;
+    grid-template-columns: 90px 90px 100px 1fr;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--panel-border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    align-items: baseline;
+  }
+
+  .feed-item:last-child { border-bottom: none; }
+
+  .feed-item .time { color: var(--text-dim); }
+  .feed-item .machine { color: var(--text-primary); font-weight: 500; }
+  .feed-item .agent-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(95, 114, 116, 0.15);
+    color: var(--text-dim);
+    width: fit-content;
+  }
+  .feed-item .agent-tag.diagnosis { color: var(--accent-amber); }
+  .feed-item .detail { color: var(--text-primary); font-family: 'IBM Plex Sans', sans-serif; }
+  .feed-item .detail.alerted { color: var(--accent-red); }
+
+  .empty-state {
+    color: var(--text-dim);
+    font-size: 13px;
+    padding: 20px 0;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <h1>PLANT-A · FLOOR 1-2 MONITORING</h1>
+    <div class="sub">PREDICTIVE MAINTENANCE AGENT — MONGODB ATLAS + AGENTIC AI</div>
+  </div>
+  <div class="clock">
+    <div><span class="live-dot"></span>LIVE</div>
+    <div id="server-time">--:--:--</div>
+  </div>
+</header>
+
+<div class="machines" id="machines"></div>
+
+<div class="feed-panel">
+  <h2>Agent Decision Feed</h2>
+  <div id="feed"></div>
+</div>
+
+<script>
+function sparklineSvg(history, field, isAlerting) {
+  if (!history || history.length < 2) return '';
+  const values = history.map(h => h[field]).filter(v => v !== null && v !== undefined);
+  if (values.length < 2) return '';
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = (max - min) || 1;
+  const w = 280, h = 44, pad = 4;
+  const points = values.map((v, i) => {
+    const x = pad + (i / (values.length - 1)) * (w - pad * 2);
+    const y = h - pad - ((v - min) / range) * (h - pad * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const color = isAlerting ? '#ff5b5b' : '#4ade80';
+  return `<svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <polyline points="${points}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.85"/>
+  </svg>`;
+}
+
+function renderMachines(machines) {
+  const container = document.getElementById('machines');
+  container.innerHTML = machines.map(m => {
+    const isAlerting = m.status === 'alert';
+    const c = m.current;
+    const tempVal = c.temperature_c != null ? c.temperature_c.toFixed(1) : '--';
+    const vibVal = c.vibration_mm_s != null ? c.vibration_mm_s.toFixed(2) : '--';
+
+    let diagnosisHtml = '';
+    if (isAlerting && m.diagnosis) {
+      diagnosisHtml = `
+        <div class="diagnosis-box">
+          <div class="match-line">⚠ Matched: ${m.diagnosis.matched_failure_type} (${(m.diagnosis.similarity_score * 100).toFixed(0)}% similarity)</div>
+          <div class="recommendation">${m.diagnosis.recommendation || ''}</div>
+        </div>`;
+    }
+
+    return `
+      <div class="machine-card ${isAlerting ? 'alert' : ''}">
+        <div class="machine-header">
+          <div class="machine-id">${m.machine_id}</div>
+          <div class="status-pill ${isAlerting ? 'alert' : 'healthy'}">${isAlerting ? 'Alert' : 'Healthy'}</div>
+        </div>
+        <div class="readings">
+          <div class="reading">
+            <div class="label">Temperature</div>
+            <div class="value ${isAlerting ? 'alert-value' : ''}">${tempVal}<span class="unit"> °C</span></div>
+          </div>
+          <div class="reading">
+            <div class="label">Vibration</div>
+            <div class="value ${isAlerting ? 'alert-value' : ''}">${vibVal}<span class="unit"> mm/s</span></div>
+          </div>
+        </div>
+        ${sparklineSvg(m.history, 'temperature_c', isAlerting)}
+        ${diagnosisHtml}
+      </div>`;
+  }).join('');
+}
+
+function renderFeed(feed) {
+  const container = document.getElementById('feed');
+  if (!feed.length) {
+    container.innerHTML = '<div class="empty-state">No agent activity yet.</div>';
+    return;
+  }
+  container.innerHTML = feed.map(item => {
+    const time = new Date(item.timestamp).toLocaleTimeString();
+    const agentTag = item.agent === 'diagnosis_agent' ? 'diagnosis' : '';
+    let detail = item.event;
+    let detailClass = '';
+    if (item.event === 'diagnosis_complete') {
+      detail = item.alert_sent
+        ? `Alert sent — matched ${item.matched_failure_type}`
+        : `Below confidence threshold — logged, no alert`;
+      detailClass = item.alert_sent ? 'alerted' : '';
+    } else if (item.event === 'anomaly_flagged') {
+      detail = 'Anomaly flagged — handing off to diagnosis agent';
+    } else if (item.event === 'check_ok') {
+      detail = 'Routine check — within normal range';
+    }
+    return `
+      <div class="feed-item">
+        <div class="time">${time}</div>
+        <div class="machine">${item.machine_id || '--'}</div>
+        <div class="agent-tag ${agentTag}">${(item.agent || '').replace('_agent', '')}</div>
+        <div class="detail ${detailClass}">${detail}</div>
+      </div>`;
+  }).join('');
+}
+
+async function poll() {
+  try {
+    const res = await fetch('/api/status');
+    const data = await res.json();
+    renderMachines(data.machines);
+    renderFeed(data.feed);
+    document.getElementById('server-time').textContent = new Date(data.server_time).toLocaleTimeString();
+  } catch (e) {
+    console.error('Poll failed:', e);
+  }
+}
+
+poll();
+setInterval(poll, 3000);
+</script>
+
+</body>
+</html>

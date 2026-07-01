@@ -1,0 +1,76 @@
+MONGODB HACKATHON NOTES
+===============================
+
+
+https://cloud.mongodb.com/v2
+
+Created database - predictive_maintenance
+Created collections -
+
+	sensor_readings
+	failure_signatures
+	
+
+
+In windows shell
+
+$env:MONGO_URI="mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?appName=Cluster0"
+$env:MONGO_DB="predictive_maintenance"
+python seed_failure_signatures.py
+
+
+Create Vector Search Index >> Vector Search >> Automated Embedding >> Provide index name >> Choose database and collection > JSON editor. Paste below json.
+
+index name  - failure_vector_index
+
+{
+  "fields": [
+    {
+      "type": "autoEmbed",
+      "modality": "text",
+      "path": "description",
+      "model": "voyage-4"
+    }
+  ]
+}
+
+
+Testing it via :: 
+Cluster >> predictive_maintenance >> failure_signatures >> Aggregations >>
+
+Stage 1 : Vector Search 
+
+{
+  "index": "failure_vector_index",
+  "path": "description",
+  "query": "temperature climbing steadily with rising vibration over the last 10 minutes",
+  "numCandidates": 50,
+  "limit": 3
+}
+
+Stage 2 : {
+  "failure_type": 1,
+  "recommended_action": 1,
+  "score": { "$meta": "vectorSearchScore" }
+}
+
+
+
+
+PS C:\Jijil\code\mongodb hackathon> python generate_sensor_data.py --seed-history
+Seeded 1080 historical documents across 3 machines.
+
+
+PS C:\Jijil\code\mongodb hackathon> python -c "from pymongo import MongoClient; import os; client = MongoClient(os.environ['MONGO_URI']); db = client[os.environ['MONGO_DB']]; col = db['sensor_readings']; print('Total documents:', col.count_documents({})); print('Sample doc:', col.find_one()); print('Distinct machines:', col.distinct('metadata.machine_id'))"
+Total documents: 1080
+Sample doc: {'timestamp': datetime.datetime(2026, 6, 30, 6, 9, 50, 486000), 'metadata': {'location': 'Plant-A-Floor2', 'machine_id': 'PUMP-01', 'machine_type': 'centrifugal_pump'}, '_id': ObjectId('6a4364b64886c7f8aa98b5a8'), 'vibration_mm_s': 1.72, 'pressure_bar': 4.76, 'rpm': 1449, 'temperature_c': 63.68}
+Distinct machines: ['PUMP-03', 'PUMP-02', 'PUMP-01']
+
+
+# Install langgraph
+
+pip install langgraph requests --break-system-packages
+
+
+
+
