@@ -21,7 +21,7 @@ from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
 MONGO_URI = os.environ["MONGO_URI"]
-DB_NAME = os.environ.get("MONGO_DB", "predictive_maintenance")
+DB_NAME = os.environ.get("MONGO_DB", "team_8")
 
 Z_SCORE_THRESHOLD = float(os.environ.get("Z_SCORE_THRESHOLD", "2.5"))
 

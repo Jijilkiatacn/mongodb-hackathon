@@ -25,7 +25,7 @@ from datetime import datetime, timedelta, timezone
 from pymongo import MongoClient
 
 MONGO_URI = os.environ.get("MONGO_URI", "mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?appName=Cluster0")
-DB_NAME = os.environ.get("MONGO_DB", "predictive_maintenance")
+DB_NAME = os.environ.get("MONGO_DB", "team_8")
 
 MACHINES = [
     {"machine_id": "PUMP-01", "machine_type": "centrifugal_pump", "location": "Plant-A-Floor2"},

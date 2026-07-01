@@ -27,7 +27,7 @@ import os
 from pymongo import MongoClient
 
 MONGO_URI = os.environ.get("MONGO_URI", "mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?appName=Cluster0")
-DB_NAME = os.environ.get("MONGO_DB", "predictive_maintenance")
+DB_NAME = os.environ.get("MONGO_DB", "team_8")
 
 FAILURE_SIGNATURES = [
     {
@@ -95,7 +95,7 @@ def main():
     collection.insert_many(docs)
     print(f"Inserted {len(docs)} failure signatures into '{DB_NAME}.failure_signatures'.")
     print("Atlas will auto-generate embeddings for the 'description' field via the "
-          "'failure_vector_index' (voyage-4). Give it a minute to finish indexing "
+          "'autoembed_index' (voyage-4). Give it a minute to finish indexing "
           "before running vector search queries against this collection.")
 
 

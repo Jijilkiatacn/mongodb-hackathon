@@ -4,7 +4,7 @@ MONGODB HACKATHON NOTES
 
 https://cloud.mongodb.com/v2
 
-Created database - predictive_maintenance
+Created database - team_8
 Created collections -
 
 	sensor_readings
@@ -15,13 +15,13 @@ Created collections -
 In windows shell
 
 $env:MONGO_URI="mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?appName=Cluster0"
-$env:MONGO_DB="predictive_maintenance"
+$env:MONGO_DB="team_8"
 python seed_failure_signatures.py
 
 
 Create Vector Search Index >> Vector Search >> Automated Embedding >> Provide index name >> Choose database and collection > JSON editor. Paste below json.
 
-index name  - failure_vector_index
+index name  - autoembed_index
 
 {
   "fields": [
@@ -36,12 +36,12 @@ index name  - failure_vector_index
 
 
 Testing it via :: 
-Cluster >> predictive_maintenance >> failure_signatures >> Aggregations >>
+Cluster >> team_8 >> failure_signatures >> Aggregations >>
 
 Stage 1 : Vector Search 
 
 {
-  "index": "failure_vector_index",
+  "index": "autoembed_index",
   "path": "description",
   "query": "temperature climbing steadily with rising vibration over the last 10 minutes",
   "numCandidates": 50,

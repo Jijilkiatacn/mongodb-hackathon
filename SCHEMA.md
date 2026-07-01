@@ -46,7 +46,7 @@ A small reference library of known failure patterns. We use **Atlas auto-embeddi
 db.createCollection("failure_signatures");
 ```
 
-Then create the vector search index in the Atlas UI (Atlas Search tab → Create Search Index → Vector Search → JSON Editor), name it `failure_vector_index`:
+Then create the vector search index in the Atlas UI (Atlas Search tab → Create Search Index → Vector Search → JSON Editor), name it `autoembed_index`:
 
 ```json
 {
@@ -82,7 +82,7 @@ With auto-embedding, you pass plain query text and Atlas embeds it on the fly fo
 db.failure_signatures.aggregate([
   {
     $vectorSearch: {
-      index: "failure_vector_index",
+      index: "autoembed_index",
       path: "description",
       query: "temperature climbing steadily with rising vibration over the last 10 minutes",
       numCandidates: 50,

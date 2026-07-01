@@ -18,7 +18,7 @@ from flask import Flask, jsonify, send_from_directory
 from pymongo import MongoClient
 
 MONGO_URI = os.environ["MONGO_URI"]
-DB_NAME = os.environ.get("MONGO_DB", "predictive_maintenance")
+DB_NAME = os.environ.get("MONGO_DB", "team_8")
 MACHINE_IDS = os.environ.get("MACHINE_IDS", "PUMP-01,PUMP-02,PUMP-03").split(",")
 HISTORY_MINUTES = int(os.environ.get("DASHBOARD_HISTORY_MINUTES", "5"))
 

@@ -21,13 +21,13 @@ from pymongo import MongoClient
 from pymongo.errors import OperationFailure
 
 MONGO_URI = os.environ["MONGO_URI"]
-DB_NAME = os.environ.get("MONGO_DB", "predictive_maintenance")
+DB_NAME = os.environ.get("MONGO_DB", "team_8")
 AZURE_API_KEY = os.environ["AZURE_API_KEY"]
 AZURE_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT", "https://hack-apim-cin.azure-api.net/openai")
 AZURE_API_VERSION = os.environ.get("AZURE_OPENAI_API_VERSION", "2025-01-01-preview")
 AZURE_DEPLOYMENT = os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-4.1-mini")
 
-VECTOR_INDEX_NAME = os.environ.get("VECTOR_INDEX_NAME", "failure_vector_index")
+VECTOR_INDEX_NAME = os.environ.get("VECTOR_INDEX_NAME", "autoembed_index")
 CONFIDENCE_THRESHOLD = float(os.environ.get("CONFIDENCE_THRESHOLD", "0.45"))
 
 
