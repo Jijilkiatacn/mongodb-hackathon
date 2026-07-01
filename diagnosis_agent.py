@@ -20,7 +20,7 @@ import boto3
 from pymongo import MongoClient
 from pymongo.errors import OperationFailure
 
-MONGO_URI = os.environ["MONGO_URI"]
+MONGO_URI = os.environ.get("MONGO_URI", "mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?appName=Cluster0")
 DB_NAME = os.environ.get("MONGO_DB", "team_8")
 AWS_REGION = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
 BEDROCK_MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "amazon.nova-lite-v1:0")

@@ -20,7 +20,7 @@ from datetime import datetime, timedelta, timezone
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
-MONGO_URI = os.environ["MONGO_URI"]
+MONGO_URI = os.environ.get("MONGO_URI", "mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?appName=Cluster0")
 DB_NAME = os.environ.get("MONGO_DB", "team_8")
 
 Z_SCORE_THRESHOLD = float(os.environ.get("Z_SCORE_THRESHOLD", "2.5"))
