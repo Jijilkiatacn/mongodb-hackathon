@@ -26,7 +26,9 @@ import ssl_patch  # noqa: F401 — must precede pymongo import
 import os
 from pymongo import MongoClient
 
-MONGO_URI = os.environ.get("MONGO_URI", "mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?appName=Cluster0")
+MONGO_URI = os.environ.get("MONGO_URI")
+if not MONGO_URI:
+    raise RuntimeError("MONGO_URI environment variable is required")
 DB_NAME = os.environ.get("MONGO_DB", "team_8")
 
 FAILURE_SIGNATURES = [
